@@ -14,7 +14,7 @@ from urllib.parse import quote
 class ContentCategory(Enum):
     TECHNICAL = "technical"
     HUMAN_SKILLS = "human_skills"
-    AI_ML = "ai_ml"  # 新しく追加
+    AI_ML = "ai_ml"
     MIXED = "mixed"
 
 class ProductionChatworkAutoPost:
@@ -61,7 +61,7 @@ class ProductionChatworkAutoPost:
             "チームワーク 協調性 向上"
         ]
         
-        # 🤖 AI・機械学習系検索キーワード（競合AI含む最新版）
+        # 🤖 AI・機械学習系検索キーワード
         self.ai_ml_keywords = [
             # 🔥 主要AI競合・代替サービス
             "Claude Anthropic 使い方 ChatGPT 比較 違い",
@@ -151,7 +151,7 @@ class ProductionChatworkAutoPost:
             "🧠 心理学で学ぶ人間関係の極意"
         ]
         
-        # 🤖 AI・機械学習系投稿テンプレート（新規追加）
+        # 🤖 AI・機械学習系投稿テンプレート
         self.ai_ml_templates = [
             "🤖 最新AI技術で業務を革新しよう！",
             "⚡ 生成AI活用でヘルプデスク業務効率化",
@@ -206,9 +206,130 @@ class ProductionChatworkAutoPost:
                 "統合型"
             )
 
-    def search_youtube_videos_api(self, query: str, max_results: int = 10) -> List[Dict]:
+    def get_channel_details(self, channel_ids: List[str]) -> Dict:
         """
-        実際のYouTube Data API v3を使って動画を検索
+        チャンネルIDのリストから詳細情報（登録者数等）を取得
+        """
+        try:
+            channels_url = f"{self.youtube_base_url}/channels"
+            
+            params = {
+                'part': 'statistics,snippet',
+                'id': ','.join(channel_ids),
+                'key': self.youtube_api_key
+            }
+            
+            response = requests.get(channels_url, params=params)
+            
+            if response.status_code != 200:
+                print(f"❌ チャンネル詳細取得エラー: {response.status_code}")
+                return {}
+            
+            data = response.json()
+            details = {}
+            
+            for item in data.get('items', []):
+                channel_id = item['id']
+                statistics = item.get('statistics', {})
+                
+                details[channel_id] = {
+                    'subscriberCount': statistics.get('subscriberCount', '0'),
+                    'videoCount': statistics.get('videoCount', '0'),
+                    'viewCount': statistics.get('viewCount', '0')
+                }
+            
+            return details
+            
+        except Exception as e:
+            print(f"❌ チャンネル詳細取得エラー: {e}")
+            return {}
+
+    def calculate_video_quality_score(self, video: Dict) -> float:
+        """
+        動画の質を数値化してスコア算出
+        """
+        score = 0.0
+        
+        # 登録者数スコア (最大30点)
+        subscriber_count = int(video.get('subscriber_count', '0'))
+        if subscriber_count >= 100000:  # 10万人以上
+            score += 30
+        elif subscriber_count >= 50000:  # 5万人以上
+            score += 25
+        elif subscriber_count >= 10000:  # 1万人以上
+            score += 20
+        elif subscriber_count >= 1000:   # 1000人以上
+            score += 10
+        
+        # 再生数スコア (最大25点)
+        view_count = int(video.get('view_count_raw', '0'))
+        if view_count >= 100000:  # 10万再生以上
+            score += 25
+        elif view_count >= 50000:  # 5万再生以上
+            score += 20
+        elif view_count >= 10000:  # 1万再生以上
+            score += 15
+        elif view_count >= 1000:   # 1000再生以上
+            score += 10
+        
+        # 動画の長さスコア (最大20点) - 短すぎず長すぎない動画を優先
+        duration_seconds = self.parse_duration_to_seconds(video.get('duration', 'PT0S'))
+        if 300 <= duration_seconds <= 1800:  # 5分〜30分
+            score += 20
+        elif 180 <= duration_seconds <= 300:  # 3分〜5分
+            score += 15
+        elif 1800 <= duration_seconds <= 3600:  # 30分〜1時間
+            score += 15
+        
+        # タイトル品質スコア (最大15点)
+        title = video.get('title', '').lower()
+        quality_keywords = [
+            '解説', 'わかりやすい', '入門', '基礎', '実践', '方法', 
+            '初心者', '完全版', 'まとめ', 'ノウハウ', 'コツ', '攻略'
+        ]
+        title_score = sum(5 for keyword in quality_keywords if keyword in title)
+        score += min(title_score, 15)  # 最大15点
+        
+        # 投稿日の新しさスコア (最大10点)
+        try:
+            published_date = datetime.strptime(video.get('published_at', '2000-01-01'), '%Y-%m-%d')
+            days_ago = (datetime.now() - published_date).days
+            if days_ago <= 30:      # 1ヶ月以内
+                score += 10
+            elif days_ago <= 90:    # 3ヶ月以内
+                score += 8
+            elif days_ago <= 180:   # 6ヶ月以内
+                score += 6
+            elif days_ago <= 365:   # 1年以内
+                score += 4
+        except:
+            pass
+        
+        return score
+
+    def parse_duration_to_seconds(self, duration_str: str) -> int:
+        """ISO 8601形式の時間を秒数に変換"""
+        try:
+            import re
+            pattern = r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?'
+            match = re.match(pattern, duration_str)
+            
+            if not match:
+                return 0
+            
+            hours, minutes, seconds = match.groups()
+            total_seconds = 0
+            total_seconds += int(hours) * 3600 if hours else 0
+            total_seconds += int(minutes) * 60 if minutes else 0
+            total_seconds += int(seconds) if seconds else 0
+            
+            return total_seconds
+        except:
+            return 0
+
+    def search_youtube_videos_api(self, query: str, max_results: int = 20) -> List[Dict]:
+        """
+        改良版YouTube動画検索（質の高い動画を優先選択）
         """
         try:
             # YouTube Data API v3 検索エンドポイント
@@ -219,9 +340,9 @@ class ProductionChatworkAutoPost:
                 'q': query,
                 'type': 'video',
                 'maxResults': max_results,
-                'order': 'relevance',  # 関連度順
-                'regionCode': 'JP',    # 日本
-                'relevanceLanguage': 'ja',  # 日本語
+                'order': 'relevance',
+                'regionCode': 'JP',
+                'relevanceLanguage': 'ja',
                 'key': self.youtube_api_key
             }
             
@@ -230,7 +351,6 @@ class ProductionChatworkAutoPost:
             
             if response.status_code != 200:
                 print(f"❌ YouTube API エラー: {response.status_code}")
-                print(f"エラー詳細: {response.text}")
                 return []
             
             data = response.json()
@@ -241,40 +361,59 @@ class ProductionChatworkAutoPost:
             
             videos = []
             video_ids = []
+            channel_ids = []
             
-            # 動画IDを収集
+            # 動画IDとチャンネルIDを収集
             for item in data['items']:
                 video_id = item['id']['videoId']
+                channel_id = item['snippet']['channelId']
                 video_ids.append(video_id)
+                channel_ids.append(channel_id)
             
-            # 動画の詳細情報を取得（再生数、長さなど）
+            # 動画の詳細情報とチャンネル詳細を並行取得
             video_details = self.get_video_details(video_ids)
+            channel_details = self.get_channel_details(list(set(channel_ids)))
             
-            for i, item in enumerate(data['items']):
+            for item in data['items']:
                 video_id = item['id']['videoId']
+                channel_id = item['snippet']['channelId']
                 snippet = item['snippet']
                 
                 # 詳細情報を取得
-                details = video_details.get(video_id, {})
+                v_details = video_details.get(video_id, {})
+                c_details = channel_details.get(channel_id, {})
                 
                 video_info = {
                     'title': snippet['title'],
                     'url': f"https://www.youtube.com/watch?v={video_id}",
                     'video_id': video_id,
                     'channel_name': snippet['channelTitle'],
-                    'channel_url': f"https://www.youtube.com/channel/{snippet['channelId']}",
+                    'channel_id': channel_id,
+                    'channel_url': f"https://www.youtube.com/channel/{channel_id}",
                     'thumbnail': snippet['thumbnails'].get('high', {}).get('url', ''),
-                    'description': snippet['description'][:200],  # 最初の200文字
-                    'published_at': snippet['publishedAt'][:10],  # YYYY-MM-DD
-                    'views': self.format_number(details.get('viewCount', '0')),
-                    'duration': self.format_duration(details.get('duration', 'PT0S')),
+                    'description': snippet['description'][:200],
+                    'published_at': snippet['publishedAt'][:10],
+                    'views': self.format_number(v_details.get('viewCount', '0')),
+                    'view_count_raw': v_details.get('viewCount', '0'),
+                    'duration': self.format_duration(v_details.get('duration', 'PT0S')),
+                    'subscriber_count': c_details.get('subscriberCount', '0'),
+                    'subscriber_count_formatted': self.format_number(c_details.get('subscriberCount', '0')),
                     'category': self.determine_category(snippet['title'], snippet['description'])
                 }
                 
                 videos.append(video_info)
             
-            print(f"✅ {len(videos)}本の動画を取得しました")
-            return videos
+            # 動画の質スコアを計算してソート
+            for video in videos:
+                video['quality_score'] = self.calculate_video_quality_score(video)
+            
+            # スコア順でソート（高い順）
+            videos.sort(key=lambda x: x['quality_score'], reverse=True)
+            
+            print(f"✅ {len(videos)}本の動画を取得・品質評価完了")
+            
+            # 上位の質の高い動画のみを返す
+            return videos[:min(10, len(videos))]
             
         except Exception as e:
             print(f"❌ YouTube API検索エラー: {e}")
@@ -334,7 +473,6 @@ class ProductionChatworkAutoPost:
     def format_duration(self, duration_str: str) -> str:
         """ISO 8601形式の時間を見やすい形式に変換"""
         try:
-            # PT1H30M45S -> 1:30:45
             import re
             
             pattern = r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?'
@@ -380,82 +518,141 @@ class ProductionChatworkAutoPost:
             return "総合"
 
     def format_video_post(self, videos: List[Dict], template: str, category_name: str) -> str:
-        """カテゴリに応じた投稿フォーマット"""
+        """
+        改良版：見やすいChatwork投稿フォーマット
+        """
         jst = timezone(timedelta(hours=9))
         current_time = datetime.now(jst).strftime("%Y年%m月%d日")
         weekday_name = ["月", "火", "水", "木", "金", "土", "日"][datetime.now(jst).weekday()]
         
-        # カテゴリ別のヘッダーメッセージ
-        category_intro = {
-            "技術系": "💼 **IT系ヘルプデスクに必要な技術力**\n技術的な知識とスキルは、お客様の問題を迅速に解決するための基盤です。",
-            "人間力系": "🌟 **IT系ヘルプデスクに必要な人間力**\nお客様と直接対話するヘルプデスクでは、技術力と同じくらい人間力が重要です。",
-            "AI・機械学習系": "🤖 **AI時代のヘルプデスクエンジニア**\n生成AIや機械学習技術を活用することで、より効率的で高度な問題解決が可能になります。",
-            "統合型": "⚖️ **技術力×人間力×AI活用力のトリプルスキル**\n未来のヘルプデスクエンジニアは、従来のスキルにAI活用力を加えた総合力が求められます。"
-        }.get(category_name, "🚀 **総合スキル向上**")
+        # ヘッダー部分の改良
+        message = f"""
+╔══════════════════════════════════════════════╗
+║  {template}  ║
+╚══════════════════════════════════════════════╝
+
+📅 **{current_time}（{weekday_name}曜日）**
+📂 **カテゴリ：** {category_name}
+
+"""
         
-        message = f"{template}\n\n"
-        message += f"📅 {current_time}（{weekday_name}曜日）\n"
-        message += f"📂 カテゴリ: {category_name}\n\n"
+        # カテゴリ説明の改良
+        category_intro = self.get_enhanced_category_intro(category_name)
         message += f"{category_intro}\n\n"
         
-        # 最大3本の動画を選択
-        selected_videos = random.sample(videos, min(3, len(videos)))
+        # 動画リスト部分の改良
+        message += "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+        message += "┃           📺 おすすめ動画リスト           ┃\n"
+        message += "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        
+        # 最大3本の高品質動画を選択
+        selected_videos = videos[:3]  # 既にスコア順でソートされているため
         
         for i, video in enumerate(selected_videos, 1):
-            message += f"━━━━━━━━━━━━━━━━━━━━━━\n"
-            message += f"📺 **{i}. {video['title']}**\n\n"
+            # 動画セクションの区切り線
+            message += f"{'─' * 50}\n"
+            message += f"🎥 **動画 {i}：{video['title']}**\n"
+            message += f"{'─' * 50}\n\n"
             
-            # カテゴリバッジ
-            category_emoji = "🔧" if video.get('category') == '技術系' else "💡" if video.get('category') == '人間力系' else "🤖" if video.get('category') == 'AI・機械学習系' else "🎯"
-            message += f"{category_emoji} カテゴリ: {video.get('category', '総合')}\n\n"
+            # 品質インジケーター
+            quality_score = video.get('quality_score', 0)
+            quality_stars = "★" * min(5, int(quality_score / 20)) + "☆" * (5 - min(5, int(quality_score / 20)))
+            message += f"⭐ **品質スコア：** {quality_stars} ({quality_score:.1f}/100点)\n\n"
             
-            # 基本情報
-            message += f"📊 **基本情報**\n"
-            message += f"⏱️ 長さ: {video.get('duration', '不明')}\n"
-            message += f"👀 再生数: {video.get('views', '不明')}\n"
-            message += f"📅 投稿日: {video.get('published_at', '不明')}\n\n"
+            # チャンネル情報（登録者数を強調）
+            subscriber_count = video.get('subscriber_count_formatted', '不明')
+            message += f"📺 **チャンネル：** {video['channel_name']}\n"
+            message += f"👥 **登録者数：** {subscriber_count}人\n\n"
             
-            # 概要
+            # 動画統計情報をテーブル形式で
+            message += "📊 **動画情報**\n"
+            message += "```\n"
+            message += f"⏱️ 長さ     │ {video.get('duration', '不明')}\n"
+            message += f"👀 再生数   │ {video.get('views', '不明')}\n"
+            message += f"📅 投稿日   │ {video.get('published_at', '不明')}\n"
+            message += f"🏷️ カテゴリ │ {video.get('category', '総合')}\n"
+            message += "```\n\n"
+            
+            # 概要（改行で読みやすく）
             if video.get('description'):
-                desc = video['description'][:120] + "..." if len(video['description']) > 120 else video['description']
-                message += f"📝 **概要**\n{desc}\n\n"
+                desc = video['description'][:150].replace('\n', ' ')
+                message += f"📝 **概要**\n"
+                message += f">{desc}{'...' if len(video['description']) > 150 else ''}\n\n"
             
-            # なぜこの動画が重要か
-            importance_msg = self.get_importance_message(video.get('category', ''), i)
-            message += f"💭 **ヘルプデスクでの活用**\n{importance_msg}\n\n"
+            # ヘルプデスクでの活用ポイント
+            importance_msg = self.get_enhanced_importance_message(video.get('category', ''), i)
+            message += f"💡 **ヘルプデスクでの活用ポイント**\n"
+            message += f"📌 {importance_msg}\n\n"
             
-            # リンク情報
-            message += f"🔗 **リンク**\n"
-            message += f"📹 動画URL: {video['url']}\n"
-            if video.get('channel_url'):
-                message += f"📺 チャンネル: {video['channel_name']} - {video['channel_url']}\n\n"
+            # リンクセクション
+            message += f"🔗 **アクセス**\n"
+            message += f"   📹 [動画を見る]({video['url']})\n"
+            message += f"   📺 [チャンネルを見る]({video['channel_url']})\n\n"
         
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += f"🎯 **本日のアクション**\n"
-        message += self.get_daily_action_message(category_name)
-        message += "\n\n💪 技術力・人間力・AI活用力の3つのスキルを磨いて、最強のヘルプデスクエンジニアを目指しましょう！\n"
-        message += f"#ITヘルプデスク #{category_name} #スキルアップ #IT学習 #人間力 #AI活用"
+        # フッター部分
+        message += "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+        message += "┃           🎯 今日のアクション          ┃\n"
+        message += "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        
+        action_message = self.get_enhanced_daily_action_message(category_name)
+        message += f"✅ {action_message}\n\n"
+        
+        # 最終メッセージ
+        message += "💪 **今日から実践できること**\n"
+        message += "• 1つの動画を最後まで視聴する\n"
+        message += "• 学んだ内容を仕事で実際に試してみる\n"
+        message += "• 同僚とシェアして議論してみる\n\n"
+        
+        message += "🚀 **技術力 × 人間力 × AI活用力** で最強のヘルプデスクエンジニアを目指しましょう！\n\n"
+        
+        # ハッシュタグ
+        hashtags = f"#ITヘルプデスク #{category_name.replace('・', '')} #スキルアップ #YouTube学習"
+        message += f"{hashtags}"
         
         return message
 
-    def get_importance_message(self, category: str, index: int) -> str:
-        """動画の重要性を説明するメッセージ"""
+    def get_enhanced_category_intro(self, category_name: str) -> str:
+        """カテゴリ説明の強化版"""
+        intros = {
+            "技術系": """🔧 **IT系ヘルプデスクに必要な技術力**
+
+技術的な知識とスキルは、お客様の問題を迅速に解決するための基盤です。
+今日選出した動画は、登録者数・再生数・内容の質を総合的に評価した
+**高品質コンテンツ** です。""",
+            
+            "人間力系": """🌟 **IT系ヘルプデスクに必要な人間力**
+
+お客様と直接対話するヘルプデスクでは、技術力と同じくらい人間力が重要です。
+コミュニケーション能力や心理学的アプローチを学ぶことで、
+より効果的なサポートが提供できるようになります。""",
+            
+            "AI・機械学習系": """🤖 **AI時代のヘルプデスクエンジニア**
+
+生成AIや機械学習技術を活用することで、より効率的で高度な問題解決が可能になります。
+ChatGPTやClaude、Geminiなどの最新AIツールを使いこなし、
+業務の自動化と質の向上を実現しましょう。"""
+        }
+        
+        return intros.get(category_name, "🚀 **総合スキル向上**\n継続的な学習で着実にスキルアップしていきましょう。")
+
+    def get_enhanced_importance_message(self, category: str, index: int) -> str:
+        """動画の重要性を説明するメッセージの強化版"""
         tech_messages = [
-            "技術資格は信頼性の証明となり、お客様からの信頼獲得につながります。",
-            "システム知識があることで、より深い問題解決が可能になります。",
-            "最新技術の理解は、現代的な問題への対応力を高めます。"
+            "技術資格は信頼性の証明となり、お客様からの信頼獲得につながります。体系的な知識習得で問題解決力を向上させましょう。",
+            "システム知識があることで、より深い問題解決が可能になります。根本原因の特定と効率的な解決策の提案ができるようになります。",
+            "最新技術の理解は、現代的な問題への対応力を高めます。技術トレンドを把握することで、お客様により良いアドバイスができます。"
         ]
         
         human_messages = [
-            "コミュニケーション力は、お客様の真の困りごとを引き出すために必須です。",
-            "心理学の知識は、ストレスの多いお客様への適切な対応に活かされます。",
-            "ビジネスマナーは、プロフェッショナルとしての印象を決定づけます。"
+            "コミュニケーション力は、お客様の真の困りごとを引き出すために必須です。適切な質問と傾聴スキルでより良いサポートを提供できます。",
+            "心理学の知識は、ストレスの多いお客様への適切な対応に活かされます。相手の心理状態を理解し、安心感を与える対応ができるようになります。",
+            "ビジネスマナーは、プロフェッショナルとしての印象を決定づけます。第一印象と継続的な信頼関係構築の基盤となります。"
         ]
         
         ai_messages = [
-            "AI技術の理解により、自動化可能な作業を特定し、より高度な問題に集中できます。",
-            "プロンプトエンジニアリングスキルで、AIツールを効果的に活用した問題解決が可能です。",
-            "生成AIを活用することで、お客様への説明資料作成や回答の質を向上させられます。"
+            "AI技術の理解により、自動化可能な作業を特定し、より高度な問題に集中できます。効率化と質の向上を同時に実現できます。",
+            "プロンプトエンジニアリングスキルで、AIツールを効果的に活用した問題解決が可能です。複雑な問題も段階的に解決できるようになります。",
+            "生成AIを活用することで、お客様への説明資料作成や回答の質を向上させられます。分かりやすい説明で顧客満足度を向上させましょう。"
         ]
         
         if category == "技術系":
@@ -465,15 +662,15 @@ class ProductionChatworkAutoPost:
         else:
             return human_messages[(index - 1) % len(human_messages)]
 
-    def get_daily_action_message(self, category: str) -> str:
-        """カテゴリ別の今日のアクションメッセージ"""
+    def get_enhanced_daily_action_message(self, category: str) -> str:
+        """カテゴリ別の今日のアクションメッセージの強化版"""
         messages = {
-            "技術系": "今日は技術的な知識を一つ深堀りしてみましょう。学んだことをすぐに実践で活かすことを意識してください。",
-            "人間力系": "今日は同僚やお客様との会話で、学んだコミュニケーション技術を一つ試してみましょう。",
-            "AI・機械学習系": "今日はAIツールを一つ試してみましょう。業務での活用シーンを具体的に想像しながら学習してください。",
+            "技術系": "今日は技術的な知識を一つ深堀りしてみましょう。学んだことをラボ環境で実際に試し、実践スキルとして身につけてください。",
+            "人間力系": "今日は同僚やお客様との会話で、学んだコミュニケーション技術を一つ試してみましょう。相手の反応を観察し、効果を確認してください。",
+            "AI・機械学習系": "今日はAIツールを一つ試してみましょう。業務での活用シーンを具体的に想像し、実際のタスクに適用してみてください。",
             "統合型": "技術的な問題解決、人間的な配慮、AI活用を組み合わせた最適なアプローチを意識して取り組みましょう。"
         }
-        return messages.get(category, "学んだことを実践で活かしていきましょう。")
+        return messages.get(category, "学んだことを実践で活かし、継続的なスキル向上を心がけましょう。")
 
     def post_to_chatwork(self, message: str) -> bool:
         """チャットワークにメッセージを投稿"""
@@ -519,18 +716,27 @@ class ProductionChatworkAutoPost:
         print(f"📂 選択カテゴリ: {category_name}")
         print(f"🔍 選択キーワード: {selected_keyword}")
         
-        # YouTube APIで動画を検索
-        videos = self.search_youtube_videos_api(selected_keyword, max_results=10)
+        # YouTube APIで動画を検索（品質スコア付き）
+        videos = self.search_youtube_videos_api(selected_keyword, max_results=20)
         
         if not videos:
             print("❌ 動画が見つかりませんでした")
             return
         
+        # 品質スコアによるフィルタリング（スコア50点以上の動画のみ選択）
+        high_quality_videos = [v for v in videos if v.get('quality_score', 0) >= 50]
+        
+        if not high_quality_videos:
+            print("⚠️ 高品質動画が見つかりませんでした。全動画から選択します。")
+            high_quality_videos = videos
+        
+        print(f"✅ 高品質動画 {len(high_quality_videos)}本を選出")
+        
         # テンプレート選択
         template = random.choice(templates)
         
         # 投稿内容作成
-        message = self.format_video_post(videos, template, category_name)
+        message = self.format_video_post(high_quality_videos, template, category_name)
         
         # チャットワークに投稿
         success = self.post_to_chatwork(message)
@@ -539,7 +745,8 @@ class ProductionChatworkAutoPost:
             print(f"✅ 投稿完了!")
             print(f"   - カテゴリ: {category_name}")
             print(f"   - キーワード: {selected_keyword}")
-            print(f"   - 動画数: {min(3, len(videos))}本")
+            print(f"   - 動画数: {min(3, len(high_quality_videos))}本")
+            print(f"   - 平均品質スコア: {sum(v.get('quality_score', 0) for v in high_quality_videos[:3]) / min(3, len(high_quality_videos)):.1f}点")
         else:
             print("❌ 投稿失敗")
 
