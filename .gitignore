@@ -1,0 +1,27 @@
+# 環境変数ファイル（絶対にコミットしない）
+.env
+.env.local
+.env.production
+
+# Python関連
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE関連
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ログファイル
+*.log
+
+# その他
+.DS_Store
+Thumbs.db
