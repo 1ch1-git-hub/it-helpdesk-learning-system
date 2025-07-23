@@ -1,48 +1,32 @@
-# IT系ヘルプデスク学習支援システム（本番版）
+# IT系ヘルプデスク学習支援システム（AI競合時代対応版）
 
-技術力×人間力の総合学習支援システム。毎朝9時（平日のみ）にChatworkへ自動投稿。
+技術力×人間力×**AI活用力**の総合学習支援システム。
 
 ## 🚀 機能
 
+- **主要AI競合サービス対応**: ChatGPT、Claude、Gemini、Copilot、DeepSeek等
 - **YouTube API連携**: リアルタイムで最新の学習動画を検索
-- **平日限定自動投稿**: 月曜〜金曜の朝9時に自動実行
-- **カテゴリ別投稿**: 技術系70%、人間力系30%の比率
-- **GitHub Actions**: 完全自動化された実行環境
+- **AI時代対応カテゴリ**: 技術系40%、AI・ML系40%、人間力系20%
+- **完全自動化**: GitHub Actionsによる平日朝9時自動投稿
 
-## 📋 セットアップ
+## 📋 投稿内容
 
-### 1. API設定
+### 🤖 AI・機械学習系コンテンツ (40%)
+- **競合AI比較**: Claude vs ChatGPT vs Gemini
+- **実践活用**: Copilot、DeepSeek、Perplexity活用法
+- **基礎学習**: 機械学習、深層学習、データサイエンス
+- **業務活用**: プロンプトエンジニアリング、AI自動化
 
-#### YouTube Data API v3
-1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
-2. プロジェクトを作成または選択
-3. YouTube Data API v3を有効化
-4. APIキーを作成
-
-#### Chatwork API
-1. [Chatwork API設定](https://www.chatwork.com/service/packages/chatwork/subpackages/api/token.php)でトークン取得
-2. 投稿先ルームIDを確認
-
-### 2. GitHub Secrets設定
-
-リポジトリの Settings > Secrets and variables > Actions で以下を設定：
-- `CHATWORK_API_TOKEN`: ChatworkのAPIトークン
-- `CHATWORK_ROOM_ID`: 投稿先のルームID  
-- `YOUTUBE_API_KEY`: YouTube Data API v3のAPIキー
-
-## 📅 実行スケジュール
-
-- **自動実行**: 平日（月〜金） 日本時間 朝9:00
-- **手動実行**: GitHub ActionsのWorkflow Dispatchから随時可能
-
-## 🎯 投稿内容
-
-### 技術系コンテンツ (70%)
+### 💻 技術系コンテンツ (40%)
 - ITパスポート、基本情報技術者試験
 - CCNA、CompTIA A+、ITIL
 - ヘルプデスク業務、システム管理
 
-### 人間力系コンテンツ (30%)
+### 🌟 人間力系コンテンツ (20%)
 - 7つの習慣、アドラー心理学
 - ビジネスマナー、コミュニケーション術
 - リーダーシップ、チームワーク
+
+## 🎯 2025年AI競合時代への対応
+
+このシステムは、ChatGPTだけでなく主要な競合AI（Claude、Gemini、Copilot、DeepSeek、Perplexity、Meta AI、Grok）の情報も網羅し、ヘルプデスクエンジニアがAI時代に必要なスキルを総合的に学習できるよう設計されています。
