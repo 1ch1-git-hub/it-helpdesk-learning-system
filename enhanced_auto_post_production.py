@@ -315,9 +315,9 @@ class ProductionChatworkAutoPost:
             category_emoji = "🔧" if video.get('category') == '技術系' else "💡"
             message += f"{category_emoji} カテゴリ: {video.get('category', '総合')}\n\n"
             
-            # サムネイル
-            if video.get('thumbnail'):
-                message += f"🖼️ サムネイル: {video['thumbnail']}\n\n"
+            # # サムネイル
+            # if video.get('thumbnail'):
+            #     message += f"🖼️ サムネイル: {video['thumbnail']}\n\n"
             
             # 基本情報
             message += f"📊 **基本情報**\n"
