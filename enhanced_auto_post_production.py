@@ -14,13 +14,14 @@ from urllib.parse import quote
 class ContentCategory(Enum):
     TECHNICAL = "technical"
     HUMAN_SKILLS = "human_skills"
+    AI_ML = "ai_ml"  # 新しく追加
     MIXED = "mixed"
 
 class ProductionChatworkAutoPost:
     def __init__(self, api_token: str, room_id: str, youtube_api_key: str):
         """
         本番用：YouTube API連携版チャットワーク自動投稿システム
-        技術力×人間力の総合学習支援
+        技術力×人間力×AI活用力の総合学習支援
         """
         self.api_token = api_token
         self.room_id = room_id
@@ -60,6 +61,76 @@ class ProductionChatworkAutoPost:
             "チームワーク 協調性 向上"
         ]
         
+        # 🤖 AI・機械学習系検索キーワード（競合AI含む最新版）
+        self.ai_ml_keywords = [
+            # 🔥 主要AI競合・代替サービス
+            "Claude Anthropic 使い方 ChatGPT 比較 違い",
+            "Google Gemini 旧Bard 機能 活用法 Gmail連携",
+            "Microsoft Copilot Office365 Word Excel 統合活用",
+            "DeepSeek AI 推論能力 コード生成 使い方",
+            "Perplexity AI ウェブ検索 情報収集 調査ツール",
+            "Meta AI Facebook Instagram WhatsApp 統合",
+            "Grok xAI Twitter X リアルタイム情報",
+            "ChatGPT vs Claude vs Gemini 比較 選び方",
+            "生成AI 比較 2025 最新 おすすめ ランキング",
+            
+            # 🎯 AI基礎・入門
+            "AI人工知能 基礎 初心者 わかりやすい 仕組み",
+            "機械学習 Machine Learning 入門 基本概念",
+            "深層学習 ディープラーニング ニューラルネットワーク",
+            "自然言語処理 NLP 大規模言語モデル LLM",
+            "生成AI Generative AI 概要 種類 活用事例",
+            
+            # 💻 実践・プログラミング
+            "Python データサイエンス 機械学習 入門",
+            "Google Colab Python 機械学習 実践 チュートリアル",
+            "TensorFlow Keras PyTorch 入門 比較",
+            "scikit-learn データ分析 機械学習ライブラリ",
+            "Jupyter Notebook データサイエンス 環境構築",
+            
+            # 🚀 プロンプトエンジニアリング・活用
+            "プロンプトエンジニアリング 技術 コツ 効果的な書き方",
+            "ChatGPT 活用法 ビジネス 業務効率化 事例",
+            "AI プロンプト 作成 テンプレート 実践例",
+            "生成AI ビジネス活用 導入事例 成功パターン",
+            
+            # 📊 データサイエンス・分析
+            "データサイエンス 統計 分析手法 基礎",
+            "機械学習 アルゴリズム 種類 回帰 分類 クラスタリング",
+            "データ前処理 特徴量エンジニアリング Python",
+            "AutoML 自動機械学習 ツール 比較 使い方",
+            
+            # 🎨 画像・音声・マルチモーダル
+            "Computer Vision 画像認識 OpenCV 基礎",
+            "Stable Diffusion Midjourney AI画像生成 比較",
+            "音声認識 音声合成 AI 技術 活用事例",
+            "マルチモーダルAI 画像 テキスト 統合処理",
+            
+            # 💼 AIキャリア・転職
+            "AI業界 転職 必要スキル 資格 キャリアパス",
+            "データサイエンティスト 機械学習エンジニア なり方",
+            "AI プロダクトマネージャー スキル 役割",
+            "AIリテラシー ビジネスパーソン 必須知識",
+            
+            # 🌐 AI倫理・社会影響
+            "AI倫理 人工知能 社会への影響 課題",
+            "AIガバナンス 責任あるAI 開発 運用",
+            "AI セキュリティ プライバシー 保護対策",
+            "AI 雇用への影響 未来の働き方 変化",
+            
+            # 🔮 最新技術・トレンド
+            "Transformer BERT GPT モデル 仕組み 解説",
+            "RAG Retrieval Augmented Generation 活用法",
+            "ファインチューニング 学習済みモデル カスタマイズ",
+            "エッジAI IoT 組み込みシステム 活用",
+            
+            # 🏢 業界別AI活用
+            "AI ヘルプデスク 自動化 チャットボット 導入",
+            "AIカスタマーサポート 対話システム 構築",
+            "IT運用 AIOps 異常検知 自動化",
+            "AI 業務自動化 RPA 連携 効率化"
+        ]
+        
         # 📈 技術系投稿テンプレート
         self.technical_templates = [
             "🔧 今日のIT技術学習コンテンツ",
@@ -79,6 +150,18 @@ class ProductionChatworkAutoPost:
             "💪 内面から成長！自己啓発コンテンツ",
             "🧠 心理学で学ぶ人間関係の極意"
         ]
+        
+        # 🤖 AI・機械学習系投稿テンプレート（新規追加）
+        self.ai_ml_templates = [
+            "🤖 最新AI技術で業務を革新しよう！",
+            "⚡ 生成AI活用でヘルプデスク業務効率化",
+            "🚀 AIリテラシー向上で差をつけろ！",
+            "🧠 機械学習の基礎から実践まで",
+            "🎯 プロンプトエンジニアリングをマスター",
+            "💡 AI時代のヘルプデスクエンジニア必見！",
+            "🔮 未来のIT業界を先取りしよう",
+            "⚙️ AI×ITで新しい価値を創造"
+        ]
 
     def get_category_by_day(self) -> ContentCategory:
         """曜日ベースのカテゴリ選択（平日のみ実行）"""
@@ -86,10 +169,10 @@ class ProductionChatworkAutoPost:
         today = datetime.now(jst).weekday()
         
         if today < 5:  # 平日（月〜金）
-            # 70%技術系、30%人間力系
+            # 50%技術系、25%人間力系、25%AI・機械学習系
             return random.choices(
-                [ContentCategory.TECHNICAL, ContentCategory.HUMAN_SKILLS],
-                weights=[0.7, 0.3]
+                [ContentCategory.TECHNICAL, ContentCategory.HUMAN_SKILLS, ContentCategory.AI_ML],
+                weights=[0.5, 0.25, 0.25]
             )[0]
         else:
             return ContentCategory.TECHNICAL
@@ -110,9 +193,15 @@ class ProductionChatworkAutoPost:
                 self.human_skills_templates,
                 "人間力系"
             )
+        elif category == ContentCategory.AI_ML:
+            return (
+                self.ai_ml_keywords,
+                self.ai_ml_templates,
+                "AI・機械学習系"
+            )
         else:
             return (
-                self.technical_keywords + self.human_skills_keywords,
+                self.technical_keywords + self.human_skills_keywords + self.ai_ml_keywords,
                 [],
                 "統合型"
             )
@@ -272,14 +361,18 @@ class ProductionChatworkAutoPost:
         """タイトルと概要からカテゴリを判定"""
         technical_keywords = ['IT', '資格', '技術', 'パスポート', 'ネットワーク', 'システム', 'エンジニア', 'プログラ']
         human_keywords = ['習慣', 'コミュニケーション', 'マナー', 'アドラー', '心理学', '話し方', '人間関係', 'ビジネス']
+        ai_keywords = ['AI', '人工知能', '機械学習', 'ChatGPT', 'Claude', 'Gemini', 'データサイエンス', 'プロンプト', '生成AI', 'ディープラーニング']
         
         title_lower = title.lower()
         desc_lower = description.lower()
         
         tech_score = sum(1 for kw in technical_keywords if kw.lower() in title_lower or kw.lower() in desc_lower)
         human_score = sum(1 for kw in human_keywords if kw.lower() in title_lower or kw.lower() in desc_lower)
+        ai_score = sum(1 for kw in ai_keywords if kw.lower() in title_lower or kw.lower() in desc_lower)
         
-        if tech_score > human_score:
+        if ai_score > tech_score and ai_score > human_score:
+            return "AI・機械学習系"
+        elif tech_score > human_score:
             return "技術系"
         elif human_score > tech_score:
             return "人間力系"
@@ -296,7 +389,8 @@ class ProductionChatworkAutoPost:
         category_intro = {
             "技術系": "💼 **IT系ヘルプデスクに必要な技術力**\n技術的な知識とスキルは、お客様の問題を迅速に解決するための基盤です。",
             "人間力系": "🌟 **IT系ヘルプデスクに必要な人間力**\nお客様と直接対話するヘルプデスクでは、技術力と同じくらい人間力が重要です。",
-            "統合型": "⚖️ **技術力×人間力のバランス**\n優秀なヘルプデスクエンジニアは、技術的解決力と人間的対応力を兼ね備えています。"
+            "AI・機械学習系": "🤖 **AI時代のヘルプデスクエンジニア**\n生成AIや機械学習技術を活用することで、より効率的で高度な問題解決が可能になります。",
+            "統合型": "⚖️ **技術力×人間力×AI活用力のトリプルスキル**\n未来のヘルプデスクエンジニアは、従来のスキルにAI活用力を加えた総合力が求められます。"
         }.get(category_name, "🚀 **総合スキル向上**")
         
         message = f"{template}\n\n"
@@ -312,12 +406,8 @@ class ProductionChatworkAutoPost:
             message += f"📺 **{i}. {video['title']}**\n\n"
             
             # カテゴリバッジ
-            category_emoji = "🔧" if video.get('category') == '技術系' else "💡"
+            category_emoji = "🔧" if video.get('category') == '技術系' else "💡" if video.get('category') == '人間力系' else "🤖" if video.get('category') == 'AI・機械学習系' else "🎯"
             message += f"{category_emoji} カテゴリ: {video.get('category', '総合')}\n\n"
-            
-            # # サムネイル
-            # if video.get('thumbnail'):
-            #     message += f"🖼️ サムネイル: {video['thumbnail']}\n\n"
             
             # 基本情報
             message += f"📊 **基本情報**\n"
@@ -343,8 +433,8 @@ class ProductionChatworkAutoPost:
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += f"🎯 **本日のアクション**\n"
         message += self.get_daily_action_message(category_name)
-        message += "\n\n💪 技術力と人間力、両方を磨いて最強のヘルプデスクエンジニアを目指しましょう！\n"
-        message += f"#ITヘルプデスク #{category_name} #スキルアップ #IT学習 #人間力"
+        message += "\n\n💪 技術力・人間力・AI活用力の3つのスキルを磨いて、最強のヘルプデスクエンジニアを目指しましょう！\n"
+        message += f"#ITヘルプデスク #{category_name} #スキルアップ #IT学習 #人間力 #AI活用"
         
         return message
 
@@ -362,8 +452,16 @@ class ProductionChatworkAutoPost:
             "ビジネスマナーは、プロフェッショナルとしての印象を決定づけます。"
         ]
         
+        ai_messages = [
+            "AI技術の理解により、自動化可能な作業を特定し、より高度な問題に集中できます。",
+            "プロンプトエンジニアリングスキルで、AIツールを効果的に活用した問題解決が可能です。",
+            "生成AIを活用することで、お客様への説明資料作成や回答の質を向上させられます。"
+        ]
+        
         if category == "技術系":
             return tech_messages[(index - 1) % len(tech_messages)]
+        elif category == "AI・機械学習系":
+            return ai_messages[(index - 1) % len(ai_messages)]
         else:
             return human_messages[(index - 1) % len(human_messages)]
 
@@ -372,7 +470,8 @@ class ProductionChatworkAutoPost:
         messages = {
             "技術系": "今日は技術的な知識を一つ深堀りしてみましょう。学んだことをすぐに実践で活かすことを意識してください。",
             "人間力系": "今日は同僚やお客様との会話で、学んだコミュニケーション技術を一つ試してみましょう。",
-            "統合型": "技術的な問題解決と同時に、お客様への配慮も忘れずに。両方のバランスを意識した対応を心がけましょう。"
+            "AI・機械学習系": "今日はAIツールを一つ試してみましょう。業務での活用シーンを具体的に想像しながら学習してください。",
+            "統合型": "技術的な問題解決、人間的な配慮、AI活用を組み合わせた最適なアプローチを意識して取り組みましょう。"
         }
         return messages.get(category, "学んだことを実践で活かしていきましょう。")
 
