@@ -679,7 +679,8 @@ ChatGPTやClaude、Geminiなどの最新AIツールを使いこなし、
             "X-ChatWorkToken": self.api_token,
             "Content-Type": "application/x-www-form-urlencoded"
         }
-        data = {"body": message}
+        # 先頭に [toall] を追加
+        data = {"body": "[toall]\n" + message}
         
         try:
             print("📤 チャットワークに投稿中...")
