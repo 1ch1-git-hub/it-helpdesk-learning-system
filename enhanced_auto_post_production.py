@@ -29,138 +29,71 @@ class ProductionChatworkAutoPost:
         self.chatwork_base_url = "https://api.chatwork.com/v2"
         self.youtube_base_url = "https://www.googleapis.com/youtube/v3"
         
-        # 🔧 技術系検索キーワード
+        # 🔧 技術系検索キーワード（シンプル版）
         self.technical_keywords = [
-            "ITパスポート 資格 取得方法 勉強法",
-            "基本情報技術者 試験 勉強法 合格",
-            "IT系常駐ヘルプデスク 資格 知識 スキル",
-            "ヘルプデスク 仕事内容 スキル 必要な知識",
-            "セキュリティ資格 情報セキュリティマネジメント",
-            "MOS Excel Word PowerPoint 資格",
-            "CCNA ネットワーク 資格 試験",
-            "CompTIA A+ 資格 ハードウェア",
-            "ITIL ファンデーション サービス管理",
-            "Windows Server 管理 設定",
-            "ネットワーク トラブルシューティング 方法",
-            "Active Directory 設定 管理"
+            "ITパスポート",
+            "基本情報技術者",
+            "ヘルプデスク",
+            "CCNA",
+            "CompTIA A+",
+            "ITIL",
+            "Windows Server",
+            "ネットワーク"
         ]
         
-        # 🎯 人間力系検索キーワード
+        # 🎯 人間力系検索キーワード（シンプル版）
         self.human_skills_keywords = [
-            "7つの習慣 ビジネス 自己啓発 スティーブン・コヴィー",
-            "アドラー心理学 嫌われる勇気 課題の分離",
-            "ビジネスマナー コミュニケーション 自己啓発",
-            "人は話し方が9割 コミュニケーション術",
-            "好かれる人の言葉選び ビジネス会話",
-            "話しかけたくなる人 コミュニケーション スキル",
-            "ビジネス敬語 話し方 マナー",
-            "職場 人間関係 改善方法",
-            "リーダーシップ マネジメント スキル",
-            "問題解決思考 論理的思考 方法",
-            "ストレス管理 メンタルヘルス 職場",
-            "チームワーク 協調性 向上"
+            "7つの習慣",
+            "アドラー心理学",
+            "ビジネスマナー",
+            "コミュニケーション",
+            "話し方",
+            "リーダーシップ",
+            "問題解決",
+            "チームワーク"
         ]
         
-        # 🤖 AI・機械学習系検索キーワード
+        # 🤖 AI・機械学習系検索キーワード（シンプル版）
         self.ai_ml_keywords = [
-            # 🔥 主要AI競合・代替サービス
-            "Claude Anthropic 使い方 ChatGPT 比較 違い",
-            "Google Gemini 旧Bard 機能 活用法 Gmail連携",
-            "Microsoft Copilot Office365 Word Excel 統合活用",
-            "DeepSeek AI 推論能力 コード生成 使い方",
-            "Perplexity AI ウェブ検索 情報収集 調査ツール",
-            "Meta AI Facebook Instagram WhatsApp 統合",
-            "Grok xAI Twitter X リアルタイム情報",
-            "ChatGPT vs Claude vs Gemini 比較 選び方",
-            "生成AI 比較 2025 最新 おすすめ ランキング",
+            # 🔥 主要AIサービス
+            "ChatGPT",
+            "Claude",
+            "Gemini",
+            "Copilot",
+            "DeepSeek",
             
-            # 🎯 AI基礎・入門
-            "AI人工知能 基礎 初心者 わかりやすい 仕組み",
-            "機械学習 Machine Learning 入門 基本概念",
-            "深層学習 ディープラーニング ニューラルネットワーク",
-            "自然言語処理 NLP 大規模言語モデル LLM",
-            "生成AI Generative AI 概要 種類 活用事例",
+            # 🎯 AI基礎
+            "AI 基礎",
+            "機械学習",
+            "生成AI",
+            "Python AI",
             
-            # 💻 実践・プログラミング
-            "Python データサイエンス 機械学習 入門",
-            "Google Colab Python 機械学習 実践 チュートリアル",
-            "TensorFlow Keras PyTorch 入門 比較",
-            "scikit-learn データ分析 機械学習ライブラリ",
-            "Jupyter Notebook データサイエンス 環境構築",
-            
-            # 🚀 プロンプトエンジニアリング・活用
-            "プロンプトエンジニアリング 技術 コツ 効果的な書き方",
-            "ChatGPT 活用法 ビジネス 業務効率化 事例",
-            "AI プロンプト 作成 テンプレート 実践例",
-            "生成AI ビジネス活用 導入事例 成功パターン",
-            
-            # 📊 データサイエンス・分析
-            "データサイエンス 統計 分析手法 基礎",
-            "機械学習 アルゴリズム 種類 回帰 分類 クラスタリング",
-            "データ前処理 特徴量エンジニアリング Python",
-            "AutoML 自動機械学習 ツール 比較 使い方",
-            
-            # 🎨 画像・音声・マルチモーダル
-            "Computer Vision 画像認識 OpenCV 基礎",
-            "Stable Diffusion Midjourney AI画像生成 比較",
-            "音声認識 音声合成 AI 技術 活用事例",
-            "マルチモーダルAI 画像 テキスト 統合処理",
-            
-            # 💼 AIキャリア・転職
-            "AI業界 転職 必要スキル 資格 キャリアパス",
-            "データサイエンティスト 機械学習エンジニア なり方",
-            "AI プロダクトマネージャー スキル 役割",
-            "AIリテラシー ビジネスパーソン 必須知識",
-            
-            # 🌐 AI倫理・社会影響
-            "AI倫理 人工知能 社会への影響 課題",
-            "AIガバナンス 責任あるAI 開発 運用",
-            "AI セキュリティ プライバシー 保護対策",
-            "AI 雇用への影響 未来の働き方 変化",
-            
-            # 🔮 最新技術・トレンド
-            "Transformer BERT GPT モデル 仕組み 解説",
-            "RAG Retrieval Augmented Generation 活用法",
-            "ファインチューニング 学習済みモデル カスタマイズ",
-            "エッジAI IoT 組み込みシステム 活用",
-            
-            # 🏢 業界別AI活用
-            "AI ヘルプデスク 自動化 チャットボット 導入",
-            "AIカスタマーサポート 対話システム 構築",
-            "IT運用 AIOps 異常検知 自動化",
-            "AI 業務自動化 RPA 連携 効率化"
+            # 🚀 実用スキル
+            "プロンプト",
+            "AI 活用",
+            "データ分析",
+            "AI ヘルプデスク"
         ]
         
-        # 📈 技術系投稿テンプレート
+        # 📈 技術系投稿テンプレート（シンプル版）
         self.technical_templates = [
-            "🔧 今日のIT技術学習コンテンツ",
-            "💻 スキルアップに役立つ技術動画！",
-            "⚡ IT系ヘルプデスクを目指す方必見！",
-            "🚀 技術力向上のための学習リソース",
-            "📚 資格取得に向けた学習動画をご紹介",
-            "🎯 実務で活かせるIT知識を学ぼう！"
+            "IT学習動画",
+            "技術スキル向上",
+            "資格取得サポート"
         ]
         
-        # 💡 人間力系投稿テンプレート
+        # 💡 人間力系投稿テンプレート（シンプル版）
         self.human_skills_templates = [
-            "🌟 人間力アップ！自己成長コンテンツ",
-            "💬 コミュニケーション力向上の秘訣",
-            "🎭 ビジネスパーソンとしての人間力を磨こう",
-            "🤝 職場での人間関係を良好にするヒント",
-            "💪 内面から成長！自己啓発コンテンツ",
-            "🧠 心理学で学ぶ人間関係の極意"
+            "コミュニケーション向上",
+            "人間力アップ",
+            "職場での成長"
         ]
         
-        # 🤖 AI・機械学習系投稿テンプレート
+        # 🤖 AI・機械学習系投稿テンプレート（シンプル版）
         self.ai_ml_templates = [
-            "🤖 最新AI技術で業務を革新しよう！",
-            "⚡ 生成AI活用でヘルプデスク業務効率化",
-            "🚀 AIリテラシー向上で差をつけろ！",
-            "🧠 機械学習の基礎から実践まで",
-            "🎯 プロンプトエンジニアリングをマスター",
-            "💡 AI時代のヘルプデスクエンジニア必見！",
-            "🔮 未来のIT業界を先取りしよう",
-            "⚙️ AI×ITで新しい価値を創造"
+            "AI活用術",
+            "機械学習入門",
+            "生成AI実践"
         ]
 
     def get_category_by_day(self) -> ContentCategory:
@@ -519,97 +452,54 @@ class ProductionChatworkAutoPost:
 
     def format_video_post(self, videos: List[Dict], template: str, category_name: str) -> str:
         """
-        改良版：見やすいChatwork投稿フォーマット
+        シンプル版：見やすいChatwork投稿フォーマット
         """
         jst = timezone(timedelta(hours=9))
-        current_time = datetime.now(jst).strftime("%Y年%m月%d日")
+        current_time = datetime.now(jst).strftime("%m月%d日")
         weekday_name = ["月", "火", "水", "木", "金", "土", "日"][datetime.now(jst).weekday()]
         
-        # ヘッダー部分の改良
+        # シンプルなヘッダー
         message = f"""
-╔══════════════════════════════════════════════╗
-║  {template}  ║
-╚══════════════════════════════════════════════╝
+🎯 **【{current_time}({weekday_name}) {category_name}】おすすめ学習動画**
 
-📅 **{current_time}（{weekday_name}曜日）**
-📂 **カテゴリ：** {category_name}
+{self.get_simple_category_intro(category_name)}
 
 """
         
-        # カテゴリ説明の改良
-        category_intro = self.get_enhanced_category_intro(category_name)
-        message += f"{category_intro}\n\n"
-        
-        # 動画リスト部分の改良
-        message += "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
-        message += "┃           📺 おすすめ動画リスト           ┃\n"
-        message += "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
-        
-        # 最大3本の高品質動画を選択
-        selected_videos = videos[:3]  # 既にスコア順でソートされているため
+        # 動画リスト（最大2本まで）
+        selected_videos = videos[:2]
         
         for i, video in enumerate(selected_videos, 1):
-            # 動画セクションの区切り線
-            message += f"{'─' * 50}\n"
-            message += f"🎥 **動画 {i}：{video['title']}**\n"
-            message += f"{'─' * 50}\n\n"
-            
-            # 品質インジケーター
-            quality_score = video.get('quality_score', 0)
-            quality_stars = "★" * min(5, int(quality_score / 20)) + "☆" * (5 - min(5, int(quality_score / 20)))
-            message += f"⭐ **品質スコア：** {quality_stars} ({quality_score:.1f}/100点)\n\n"
-            
-            # チャンネル情報（登録者数を強調）
-            subscriber_count = video.get('subscriber_count_formatted', '不明')
-            message += f"📺 **チャンネル：** {video['channel_name']}\n"
-            message += f"👥 **登録者数：** {subscriber_count}人\n\n"
-            
-            # 動画統計情報をテーブル形式で
-            message += "📊 **動画情報**\n"
-            message += "```\n"
-            message += f"⏱️ 長さ     │ {video.get('duration', '不明')}\n"
-            message += f"👀 再生数   │ {video.get('views', '不明')}\n"
-            message += f"📅 投稿日   │ {video.get('published_at', '不明')}\n"
-            message += f"🏷️ カテゴリ │ {video.get('category', '総合')}\n"
-            message += "```\n\n"
-            
-            # 概要（改行で読みやすく）
-            if video.get('description'):
-                desc = video['description'][:150].replace('\n', ' ')
-                message += f"📝 **概要**\n"
-                message += f">{desc}{'...' if len(video['description']) > 150 else ''}\n\n"
-            
-            # ヘルプデスクでの活用ポイント
-            importance_msg = self.get_enhanced_importance_message(video.get('category', ''), i)
-            message += f"💡 **ヘルプデスクでの活用ポイント**\n"
-            message += f"📌 {importance_msg}\n\n"
-            
-            # リンクセクション
-            message += f"🔗 **アクセス**\n"
-            message += f"   📹 [動画を見る]({video['url']})\n"
-            message += f"   📺 [チャンネルを見る]({video['channel_url']})\n\n"
+            message += f"📹 **動画{i}：{video['title']}**\n"
+            message += f"📺 {video['channel_name']} ({video.get('subscriber_count_formatted', '不明')}人)\n"
+            message += f"⏰ {video.get('duration', '不明')} | 👀 {video.get('views', '不明')}\n"
+            message += f"🔗 {video['url']}\n\n"
         
-        # フッター部分
-        message += "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
-        message += "┃           🎯 今日のアクション          ┃\n"
-        message += "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
-        
-        action_message = self.get_enhanced_daily_action_message(category_name)
-        message += f"✅ {action_message}\n\n"
-        
-        # 最終メッセージ
-        message += "💪 **今日から実践できること**\n"
-        message += "• 1つの動画を最後まで視聴する\n"
-        message += "• 学んだ内容を仕事で実際に試してみる\n"
-        message += "• 同僚とシェアして議論してみる\n\n"
-        
-        message += "🚀 **技術力 × 人間力 × AI活用力** で最強のヘルプデスクエンジニアを目指しましょう！\n\n"
+        # シンプルなアクション
+        message += f"💡 **今日のポイント**\n{self.get_simple_action_message(category_name)}\n\n"
         
         # ハッシュタグ
-        hashtags = f"#ITヘルプデスク #{category_name.replace('・', '')} #スキルアップ #YouTube学習"
-        message += f"{hashtags}"
+        message += f"#ITヘルプデスク #{category_name.replace('・', '')} #学習"
         
         return message
+
+    def get_simple_category_intro(self, category_name: str) -> str:
+        """シンプルなカテゴリ説明"""
+        intros = {
+            "技術系": "🔧 ヘルプデスクに必要なIT技術スキルを学びましょう！",
+            "人間力系": "🌟 お客様対応に活かせるコミュニケーション力を向上させましょう！",
+            "AI・機械学習系": "🤖 AIツールを活用して業務効率化を図りましょう！"
+        }
+        return intros.get(category_name, "📚 継続的な学習でスキルアップしていきましょう！")
+
+    def get_simple_action_message(self, category_name: str) -> str:
+        """シンプルなアクションメッセージ"""
+        messages = {
+            "技術系": "動画で学んだ技術を実際に試してみて、理解を深めましょう。",
+            "人間力系": "学んだコミュニケーション技術を今日の業務で実践してみましょう。",
+            "AI・機械学習系": "紹介されたAIツールを一つ試して、業務での活用方法を考えてみましょう。"
+        }
+        return messages.get(category_name, "動画の内容を実務で活かしてスキルアップしましょう。")
 
     def get_enhanced_category_intro(self, category_name: str) -> str:
         """カテゴリ説明の強化版"""
