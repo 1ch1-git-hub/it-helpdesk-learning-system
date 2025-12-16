@@ -15,6 +15,7 @@ class ContentCategory(Enum):
     TECHNICAL = "technical"
     HUMAN_SKILLS = "human_skills"
     AI_ML = "ai_ml"
+    ADVANCED_IT = "advanced_it"  # 先端IT分野（AI、IoT、クラウド、セキュリティ）
     MIXED = "mixed"
 
 class ProductionChatworkAutoPost:
@@ -59,6 +60,67 @@ class ProductionChatworkAutoPost:
             "問題解決思考 論理的思考 方法",
             "ストレス管理 メンタルヘルス 職場",
             "チームワーク 協調性 向上"
+        ]
+        
+        # 🚀 先端IT分野系検索キーワード（SES業界で需要が高い分野）
+        self.advanced_it_keywords = [
+            # 🤖 AI（人工知能）
+            "AI 人工知能 入門 基礎 わかりやすい",
+            "機械学習 Machine Learning 基本概念 初心者",
+            "ディープラーニング 深層学習 ニューラルネットワーク",
+            "生成AI ChatGPT Claude Gemini 活用法",
+            "AI エンジニア スキル 必要な知識 資格",
+            "Python AI 機械学習 プログラミング 入門",
+            "TensorFlow PyTorch 使い方 チュートリアル",
+            "自然言語処理 NLP 大規模言語モデル LLM",
+            "プロンプトエンジニアリング AI 活用 コツ",
+            "AI ビジネス活用 導入事例 業務効率化",
+            
+            # 🌐 IoT（モノのインターネット）
+            "IoT 入門 基礎知識 仕組み わかりやすい",
+            "IoT システム構築 設計 開発方法",
+            "Raspberry Pi IoT プロジェクト 実践",
+            "Arduino センサー 電子工作 IoT",
+            "IoT セキュリティ 対策 脅威 防御",
+            "産業IoT IIoT スマートファクトリー 活用",
+            "IoT クラウド連携 AWS Azure Google Cloud",
+            "エッジコンピューティング IoT データ処理",
+            "IoT プラットフォーム サービス 比較 選び方",
+            "M2M 通信 MQTT プロトコル IoT",
+            
+            # ☁️ クラウド
+            "AWS 入門 基礎 初心者 わかりやすい",
+            "AWS 資格 ソリューションアーキテクト 勉強法",
+            "Azure 入門 Microsoft クラウド サービス",
+            "Azure 資格 AZ-900 試験対策 勉強法",
+            "Google Cloud GCP 入門 基礎知識",
+            "GCP 資格 Cloud Engineer 試験対策",
+            "クラウドコンピューティング 基礎 種類 特徴",
+            "AWS EC2 S3 RDS Lambda サービス解説",
+            "Azure Virtual Machines Storage サービス",
+            "Docker コンテナ 入門 Kubernetes 基礎",
+            "マルチクラウド 戦略 ハイブリッドクラウド",
+            "クラウドセキュリティ 対策 ベストプラクティス",
+            "サーバーレス アーキテクチャ Lambda Functions",
+            "Infrastructure as Code Terraform CloudFormation",
+            "クラウド コスト最適化 料金管理 節約",
+            
+            # 🔒 セキュリティ
+            "サイバーセキュリティ 入門 基礎 初心者",
+            "情報セキュリティマネジメント 試験 勉強法",
+            "ネットワークセキュリティ 対策 防御手法",
+            "セキュリティエンジニア スキル 資格 キャリア",
+            "CompTIA Security+ 資格 試験対策",
+            "倫理的ハッキング ペネトレーションテスト 手法",
+            "CISSP 資格 情報セキュリティプロフェッショナル",
+            "脆弱性診断 セキュリティ評価 方法",
+            "マルウェア対策 ウイルス 防御 駆除",
+            "ゼロトラストセキュリティ アーキテクチャ 実装",
+            "クラウドセキュリティ AWS Azure セキュリティ対策",
+            "SIEM セキュリティ監視 ログ分析 SOC",
+            "暗号化技術 SSL/TLS PKI 仕組み",
+            "セキュリティインシデント 対応 CSIRT 手順",
+            "Webアプリケーションセキュリティ OWASP Top10"
         ]
         
         # 🤖 AI・機械学習系検索キーワード
@@ -162,6 +224,18 @@ class ProductionChatworkAutoPost:
             "🔮 未来のIT業界を先取りしよう",
             "⚙️ AI×ITで新しい価値を創造"
         ]
+        
+        # 🚀 先端IT分野系投稿テンプレート
+        self.advanced_it_templates = [
+            "🚀 先端IT技術で市場価値を高めよう！",
+            "💎 SES業界で需要が高い技術スキル",
+            "⚡ 高単価案件獲得に必要な先端技術",
+            "🌟 DX時代に求められる技術力を習得",
+            "🔥 AI・IoT・クラウド・セキュリティを極める",
+            "💼 技術的専門性でキャリアアップ",
+            "🎯 人材不足分野で差をつけろ！",
+            "📈 未来を見据えた技術投資をしよう"
+        ]
 
     def get_category_by_day(self) -> ContentCategory:
         """曜日ベースのカテゴリ選択（平日のみ実行）"""
@@ -169,10 +243,10 @@ class ProductionChatworkAutoPost:
         today = datetime.now(jst).weekday()
         
         if today < 5:  # 平日（月〜金）
-            # 50%技術系、25%人間力系、25%AI・機械学習系
+            # 30%技術系、20%人間力系、20%AI・機械学習系、30%先端IT系
             return random.choices(
-                [ContentCategory.TECHNICAL, ContentCategory.HUMAN_SKILLS, ContentCategory.AI_ML],
-                weights=[0.5, 0.25, 0.25]
+                [ContentCategory.TECHNICAL, ContentCategory.HUMAN_SKILLS, ContentCategory.AI_ML, ContentCategory.ADVANCED_IT],
+                weights=[0.30, 0.20, 0.20, 0.30]
             )[0]
         else:
             return ContentCategory.TECHNICAL
@@ -199,9 +273,15 @@ class ProductionChatworkAutoPost:
                 self.ai_ml_templates,
                 "AI・機械学習系"
             )
+        elif category == ContentCategory.ADVANCED_IT:
+            return (
+                self.advanced_it_keywords,
+                self.advanced_it_templates,
+                "先端IT系"
+            )
         else:
             return (
-                self.technical_keywords + self.human_skills_keywords + self.ai_ml_keywords,
+                self.technical_keywords + self.human_skills_keywords + self.ai_ml_keywords + self.advanced_it_keywords,
                 [],
                 "統合型"
             )
@@ -500,6 +580,7 @@ class ProductionChatworkAutoPost:
         technical_keywords = ['IT', '資格', '技術', 'パスポート', 'ネットワーク', 'システム', 'エンジニア', 'プログラ']
         human_keywords = ['習慣', 'コミュニケーション', 'マナー', 'アドラー', '心理学', '話し方', '人間関係', 'ビジネス']
         ai_keywords = ['AI', '人工知能', '機械学習', 'ChatGPT', 'Claude', 'Gemini', 'データサイエンス', 'プロンプト', '生成AI', 'ディープラーニング']
+        advanced_it_keywords = ['IoT', 'クラウド', 'AWS', 'Azure', 'GCP', 'セキュリティ', 'サイバー', 'Docker', 'Kubernetes', 'Terraform']
         
         title_lower = title.lower()
         desc_lower = description.lower()
@@ -507,8 +588,11 @@ class ProductionChatworkAutoPost:
         tech_score = sum(1 for kw in technical_keywords if kw.lower() in title_lower or kw.lower() in desc_lower)
         human_score = sum(1 for kw in human_keywords if kw.lower() in title_lower or kw.lower() in desc_lower)
         ai_score = sum(1 for kw in ai_keywords if kw.lower() in title_lower or kw.lower() in desc_lower)
+        advanced_it_score = sum(1 for kw in advanced_it_keywords if kw.lower() in title_lower or kw.lower() in desc_lower)
         
-        if ai_score > tech_score and ai_score > human_score:
+        if advanced_it_score > tech_score and advanced_it_score > human_score and advanced_it_score > ai_score:
+            return "先端IT系"
+        elif ai_score > tech_score and ai_score > human_score:
             return "AI・機械学習系"
         elif tech_score > human_score:
             return "技術系"
@@ -630,7 +714,13 @@ class ProductionChatworkAutoPost:
 
 生成AIや機械学習技術を活用することで、より効率的で高度な問題解決が可能になります。
 ChatGPTやClaude、Geminiなどの最新AIツールを使いこなし、
-業務の自動化と質の向上を実現しましょう。"""
+業務の自動化と質の向上を実現しましょう。""",
+            
+            "先端IT系": """🚀 **SES業界で需要が高い先端技術スキル**
+
+DX推進とデジタル変革により、AI・IoT・クラウド・セキュリティ分野の人材不足が深刻化しています。
+これらの先端技術を習得することで、高単価案件の獲得や市場価値の向上が期待できます。
+SES企業が競争から脱却するための重要な技術領域を学びましょう。"""
         }
         
         return intros.get(category_name, "🚀 **総合スキル向上**\n継続的な学習で着実にスキルアップしていきましょう。")
@@ -655,10 +745,18 @@ ChatGPTやClaude、Geminiなどの最新AIツールを使いこなし、
             "生成AIを活用することで、お客様への説明資料作成や回答の質を向上させられます。分かりやすい説明で顧客満足度を向上させましょう。"
         ]
         
+        advanced_it_messages = [
+            "先端IT技術は、SES業界で特に需要が高く、高単価案件の獲得に直結します。市場価値の高い技術を習得して、キャリアアップを実現しましょう。",
+            "DX推進により、この分野の専門家は企業から強く求められています。人材不足が深刻な今こそ、学習を開始する絶好のタイミングです。",
+            "先端技術の習得は、単なる業務効率化だけでなく、新しいビジネス価値の創造にもつながります。未来を見据えた技術投資をしましょう。"
+        ]
+        
         if category == "技術系":
             return tech_messages[(index - 1) % len(tech_messages)]
         elif category == "AI・機械学習系":
             return ai_messages[(index - 1) % len(ai_messages)]
+        elif category == "先端IT系":
+            return advanced_it_messages[(index - 1) % len(advanced_it_messages)]
         else:
             return human_messages[(index - 1) % len(human_messages)]
 
@@ -668,6 +766,7 @@ ChatGPTやClaude、Geminiなどの最新AIツールを使いこなし、
             "技術系": "今日は技術的な知識を一つ深堀りしてみましょう。学んだことをラボ環境で実際に試し、実践スキルとして身につけてください。",
             "人間力系": "今日は同僚やお客様との会話で、学んだコミュニケーション技術を一つ試してみましょう。相手の反応を観察し、効果を確認してください。",
             "AI・機械学習系": "今日はAIツールを一つ試してみましょう。業務での活用シーンを具体的に想像し、実際のタスクに適用してみてください。",
+            "先端IT系": "今日は先端技術の基礎を一つ学びましょう。無料トライアルやハンズオン環境で実際に触れて、実践的な理解を深めてください。",
             "統合型": "技術的な問題解決、人間的な配慮、AI活用を組み合わせた最適なアプローチを意識して取り組みましょう。"
         }
         return messages.get(category, "学んだことを実践で活かし、継続的なスキル向上を心がけましょう。")
