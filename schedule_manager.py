@@ -20,7 +20,7 @@ DEFAULT_SCHEDULES = {
     "schedules": [
         {"id": "mon-0900", "weekday": 0, "time": "09:00", "name": "月曜: リーダーシップ", "keywords": ["コミュニケーション", "マネジメント", "リーダーシップ"], "description": "リーダーシップとチームマネジメントに関する学習コンテンツを配信します。"},
         {"id": "tue-0900", "weekday": 1, "time": "09:00", "name": "火曜: サイバー攻撃・セキュリティ", "keywords": ["サイバー攻撃", "セキュリティ", "ランサムウェア"], "description": "サイバーセキュリティと攻撃対策に関する学習コンテンツを配信します。"},
-        {"id": "wed-0900", "weekday": 2, "time": "09:00", "name": "水曜: 組織・チーム", "keywords": ["チーム", "心理的安全性", "組織 チーム"], "description": "組織とチーム運営に関する学習コンテンツを配信します。"},
+        {"id": "wed-0900", "weekday": 2, "time": "09:00", "name": "水曜: 組織・チーム", "keywords": ["チーム", "心理的安全性", "組織チーム"], "description": "組織とチーム運営に関する学習コンテンツを配信します。"},
         {"id": "thu-0900", "weekday": 3, "time": "09:00", "name": "木曜: AI・技術トレンド", "keywords": ["AI", "機械学習", "人工知能"], "description": "AIと最新技術トレンドに関する学習コンテンツを配信します。"},
         {"id": "fri-0900", "weekday": 4, "time": "09:00", "name": "金曜: 生産性・働き方", "keywords": ["リモートワーク", "生産性働き方", "働き方"], "description": "生産性向上と新しい働き方に関する学習コンテンツを配信します。"},
     ]
@@ -129,7 +129,11 @@ HTML_TEMPLATE = """
                     </div>
                     <div class="form-group">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">追加</button>
+                        <input type="hidden" id="editing-id" value="">
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" class="btn btn-danger" id="submit-btn">追加</button>
+                            <button type="button" class="btn btn-secondary" id="cancel-edit" style="display:none;">キャンセル</button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -219,9 +223,19 @@ HTML_TEMPLATE = """
                 keywords: keywords,
                 description: ''
             };
-            await fetch('/api/schedules', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+            const editingId = document.getElementById('editing-id').value;
+            if (editingId) {
+                await fetch(`/api/schedules/${editingId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+                document.getElementById('editing-id').value = '';
+                document.getElementById('submit-btn').textContent = '追加';
+                document.getElementById('cancel-edit').style.display = 'none';
+            } else {
+                await fetch('/api/schedules', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+            }
             await loadSchedules();
             e.target.reset();
+            document.querySelector('[name="hour"]').value = '9';
+            document.querySelector('[name="minute"]').value = '0';
         });
         
         document.getElementById('reset-default').addEventListener('click', async () => {
@@ -246,7 +260,30 @@ HTML_TEMPLATE = """
             document.getElementById('desc-modal').classList.remove('show');
         }
         
-        function editSchedule(id) { alert('編集機能はキーワード・名前を変更して再追加し、古いスケジュールを削除してください。'); }
+        async function editSchedule(id) {
+            const res = await fetch('/api/schedules');
+            const data = await res.json();
+            const s = data.schedules.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('editing-id').value = id;
+            document.querySelector('[name="weekday"]').value = String(s.weekday);
+            const [h, m] = (s.time || '09:00').split(':');
+            document.querySelector('[name="hour"]').value = h || '9';
+            document.querySelector('[name="minute"]').value = m || '0';
+            document.querySelector('[name="name"]').value = s.name || '';
+            document.querySelector('[name="keywords"]').value = (Array.isArray(s.keywords) ? s.keywords.join('、') : s.keywords || '');
+            document.getElementById('submit-btn').textContent = '更新';
+            document.getElementById('cancel-edit').style.display = 'inline-block';
+        }
+        
+        document.getElementById('cancel-edit').addEventListener('click', () => {
+            document.getElementById('editing-id').value = '';
+            document.getElementById('submit-btn').textContent = '追加';
+            document.getElementById('cancel-edit').style.display = 'none';
+            document.getElementById('add-form').reset();
+            document.querySelector('[name="hour"]').value = '9';
+            document.querySelector('[name="minute"]').value = '0';
+        });
         
         loadSchedules();
     </script>
@@ -283,6 +320,22 @@ def add_schedule():
     data["schedules"] = existing
     save_schedules(data)
     return jsonify(data)
+
+
+@app.route("/api/schedules/<schedule_id>", methods=["PUT"])
+def update_schedule(schedule_id):
+    data = load_schedules()
+    body = request.get_json() or {}
+    for s in data["schedules"]:
+        if s["id"] == schedule_id:
+            s["weekday"] = int(body.get("weekday", s["weekday"]))
+            s["time"] = body.get("time", s["time"])
+            s["name"] = body.get("name", s["name"])
+            s["keywords"] = body.get("keywords", s["keywords"])
+            s["description"] = body.get("description", s.get("description", ""))
+            break
+    save_schedules(data)
+    return jsonify(load_schedules())
 
 
 @app.route("/api/schedules/<schedule_id>", methods=["DELETE"])
